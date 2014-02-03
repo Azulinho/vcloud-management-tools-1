@@ -7,4 +7,4 @@ APP_ROOT_DIR=/opt/DVLA/vcloud-management-tools
 #execute app through bundle exec
 BUNDLE_GEMFILE="$APP_ROOT_DIR/Gemfile"
 export PATH=$RUBY_BIN_PATH:$PATH
-bundle exec $APP_ROOT_DIR/lib/application.rb
+bundle exec $RUBY_BIN_PATH/ruby $APP_ROOT_DIR/lib/application.rb
