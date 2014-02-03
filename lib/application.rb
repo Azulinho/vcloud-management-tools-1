@@ -11,7 +11,7 @@ cmdline_args = Trollop::options do
   opt :vapp_template, "VAPP template to use", :type => :string
   opt :vapp_name, "name for the new vapp", :type => :string
   opt :vapp_description, "description of the new vapp", :type => :string
-  opt :org_networks, "name of the organization network", :type => :string
+  opt :org_network, "name of the organization network", :type => :string
 end
 
 cmdline_args.each do |key, value|
@@ -47,7 +47,6 @@ org = vcloud.get_organization(orgs[credentials['org_name']])
 
 # retrieve the list of networks within the organization
 networks = org[:networks]
-
 
 # retrieve the list of vdcs within the organization
 vdcs = org[:vdcs]
@@ -99,7 +98,6 @@ network = vcloud.get_network(network_uuid)
 #reconfigure the networks for the vapp
 vcloud.add_org_network_to_vapp(vapp[:vapp_id], network, config)
 
-exit
-sleep 5
+#find out the ip address of my new vapp
 ip_address = vcloud.get_vapp(vapp[:vapp_id])[:ip]
 ap ip_address
