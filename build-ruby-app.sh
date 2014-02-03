@@ -5,10 +5,6 @@ RUBY_VERSION=1.9.3-p484
 OPT_INSTALL_PATH=/opt/DVLA/vcloud-management-tools
 APP_NAME="vcloud-create-vapp"
 
-# chicken and egg, need to fix this.
-# bundler is required here
-export PATH=/opt/ruby-local-$RUBY_VERSION/bin:$PATH
-gem install bundler
 
 #disinfect work areas
 TIMESTAMP=$( date +%s)
