@@ -11,6 +11,7 @@ cmdline_args = Trollop::options do
   opt :vapp_template, "VAPP template to use", :type => :string
   opt :vapp_name, "name for the new vapp", :type => :string
   opt :vapp_description, "description of the new vapp", :type => :string
+  opt :org_networks, "name of the organization network", :type => :string
 end
 
 cmdline_args.each do |key, value|
@@ -84,31 +85,21 @@ ap vapp
 
 vcloud.wait_task_completion(vapp[:task_id])
 
-
-#network_section =  {
-  #:name => "test-network",
-  #:gateway => "172.16.2.1",
-  #:netmask => "255.255.255.0",
-  #:start_address => "192.168.0.1",
-  #:end_address => "192.168.0.100",
-  #:fence_mode => "bridged",
-  #:ip_allocation_mode => "POOL",
-  #:parent_network =>  vdc[:networks]["Internet-NAT"],
-  #:enable_firewall => "false"}
-
 config =  {
-  :name => "CI",
+  :name => cmdline_args[:org_network],
   :fence_mode => "bridged",
   :parent_network =>  {
-    :id => networks['CI'] },
+    :id => networks[cmdline_args[:org_network]] },
   :ip_allocation_mode => "POOL" }
 
-network_uuid = networks['CI']
+network_uuid = networks[cmdline_args[:org_network]]
 
 network = vcloud.get_network(network_uuid)
 
 #reconfigure the networks for the vapp
 vcloud.add_org_network_to_vapp(vapp[:vapp_id], network, config)
 
-
-
+exit
+sleep 5
+ip_address = vcloud.get_vapp(vapp[:vapp_id])[:ip]
+ap ip_address
