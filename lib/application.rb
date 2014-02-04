@@ -2,9 +2,10 @@ require 'awesome_print'
 require 'vcloud-rest/connection'
 require 'yaml'
 require 'trollop'
+require 'fog'
 
-# Template name for testing
-#  'CI-TEST'
+#refactor all this spaghetti at some point
+
 #
 #ENV['VCLOUD_REST_DEBUG_LEVEL'] = "DEBUG"
 cmdline_args = Trollop::options do
@@ -12,6 +13,9 @@ cmdline_args = Trollop::options do
   opt :vapp_name, "name for the new vapp", :type => :string
   opt :vapp_description, "description of the new vapp", :type => :string
   opt :org_network, "name of the organization network", :type => :string
+  opt :domain, "name of the DNS domain", :type => :string
+  opt :subdomain, "name of the DNS subdomain",
+    :type => :string, :required => false, :default => ''
 end
 
 cmdline_args.each do |key, value|
@@ -19,23 +23,31 @@ cmdline_args.each do |key, value|
 end
 
 # load up the credentials from ~/.vcloud-credentials.yaml
-credentials = YAML.load_file("#{ENV['HOME']}/.vcloud-credentials.yaml")
-# Example yaml contents for the credentials ~/.vcloud-credentials.yaml file
+credentials = YAML.load_file("#{ENV['HOME']}/.credentials.yaml")
+vcloud_credentials = credentials['vcloud']
+dnsimple_credentials = credentials['dnsimple']
+# Example yaml contents for the credentials ~/.credentials.yaml file
 # ---
-#host: 'https://api.vcd.portal.cloud.com'
-#user: '999.88.AA00d2'
-#password: 'whateveryoufancy,really'
-#org_name: '99-88-0-ffffff'
-#vdc_name: 'ffffffff-ffff-ffff-ffff-ffffffffffff'
-#catalog_name: 'VappCatalog'
-#api_version: '6.1'
+#vcloud:
+#  host: 'https://api.vcd.portal.cloud.com'
+#  user: '999.88.AA00d2'
+#  password: 'whateveryoufancy,really'
+#  org_name: '99-88-0-ffffff'
+#  vdc_name: 'ffffffff-ffff-ffff-ffff-ffffffffffff'
+#  catalog_name: 'VappCatalog'
+#  api_version: '6.1'
+#dnsimple:
+#  username: adskjfdsaf@asdf.pt
+#  password: ksadfkjsadfkj
+#
+
 
 #login and get your session token
-vcloud = VCloudClient::Connection.new(credentials['host'],
-                                      credentials['user'],
-                                      credentials['password'],
-                                      credentials['org_name'],
-                                      credentials['api_version'])
+vcloud = VCloudClient::Connection.new(vcloud_credentials['host'],
+                                      vcloud_credentials['user'],
+                                      vcloud_credentials['password'],
+                                      vcloud_credentials['org_name'],
+                                      vcloud_credentials['api_version'])
 
 vcloud.login
 
@@ -43,7 +55,7 @@ vcloud.login
 orgs = vcloud.get_organizations
 
 # retrieve all the objects within this specific organization
-org = vcloud.get_organization(orgs[credentials['org_name']])
+org = vcloud.get_organization(orgs[vcloud_credentials['org_name']])
 
 # retrieve the list of networks within the organization
 networks = org[:networks]
@@ -54,7 +66,7 @@ ap vdcs
 
 # retrieve catalog uuid and then the list of all vapps inside that catalog
 catalog_uuid = vcloud.get_catalog_id_by_name(org,
-                                             credentials['catalog_name'])
+                                             vcloud_credentials['catalog_name'])
 
 # get the catalog item uuid for my VAPP template
 # this is not pretty!
@@ -70,7 +82,7 @@ vapp_template_uuid = vcloud.get_catalog_item_by_name(
 
 # create a new VAPP called 'vappname1'
 vapp = vcloud.create_vapp_from_template(
-  credentials['vdc_name'],
+  vcloud_credentials['vdc_name'],
   cmdline_args[:vapp_name],
   cmdline_args[:vapp_description],
   vapp_template_uuid,
@@ -101,3 +113,21 @@ vcloud.add_org_network_to_vapp(vapp[:vapp_id], network, config)
 #find out the ip address of my new vapp
 ip_address = vcloud.get_vapp(vapp[:vapp_id])[:ip]
 ap ip_address
+
+
+# register new vapp into DNS
+dnsimple = Fog::DNS.new({
+  :provider     => 'DNSimple',
+  :dnsimple_email => dnsimple_credentials['username'],
+  :dnsimple_password => dnsimple_credentials['password']
+})
+
+zone = dnsimple.zones.get(cmdline_args[:domain])
+ap zone
+
+record = zone.records.create(
+:value => ip_address,
+:name => cmdline_args[:vapp_name] + '.' + cmdline_args[:subdomain],
+:type => 'A'
+)
+ap record
