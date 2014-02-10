@@ -30,6 +30,7 @@ cmdline_args.each do |key, value|
 end
 
 vcloud = Vcloud.new("#{ENV['HOME']}/.credentials.yaml", cmdline_args)
+vcloud.debug
 vcloud.login
 
 ip_address = vcloud.deploy_vapp(cmdline_args[:vapp_name],
