@@ -21,19 +21,19 @@ The script assumes that the template to deploy is already configured to use a pa
 In other words, you should **have one template per vcloud org network you want to deploy to**.
 
 Example:
-     bundle exec ruby lib/application.rb \\
+    bundle exec ruby lib/application.rb \\
 
-      -v '<ORG_NETWORK_NAME>-TEMPLATE_NAME' \\
+    -v '<ORG_NETWORK_NAME>-TEMPLATE_NAME' \\
 
-      -a 'VAPP_NAME' \\
+    -a 'VAPP_NAME' \\
 
-      -p 'DESCRIPTION' \\
+    -p 'DESCRIPTION' \\
 
-      -o 'ORG_NETWORK_NAME' \\
+    -o 'ORG_NETWORK_NAME' \\
 
-      -d 'TOP DOMAIN' \\
+    -d 'TOP DOMAIN' \\
 
-      -s 'subdomain example: local'
+    -s 'subdomain example: local'
 
 This should create a VAPP named *VAPP_NAME* with a DHCP assigned IP address and
 registered in public DNS using DNSimple.com as: *VAPP_NAME.local.topdomain*
