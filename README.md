@@ -21,7 +21,7 @@ The script assumes that the template to deploy is already configured to use a pa
 In other words, you should **have one template per vcloud org network you want to deploy to**.
 
 Example:
-    bundle exec ruby lib/application.rb \\
+     bundle exec ruby lib/application.rb \\
 
       -v '<ORG_NETWORK_NAME>-TEMPLATE_NAME' \\
 
