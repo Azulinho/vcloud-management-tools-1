@@ -170,34 +170,3 @@ class Vcloud
   end
 end
 
-class DNS
-  def initialize(credentials_file)
-    @credentials_file = credentials_file
-  end
-
-  def dnsimple_credentials
-    YAML.load_file(@credentials_file)['dnsimple']
-  end
-
-  def login
-    # register new vapp into DNS
-    @dnsimple = Fog::DNS.new({
-      :provider     => 'DNSimple',
-      :dnsimple_email => dnsimple_credentials['username'],
-      :dnsimple_password => dnsimple_credentials['password']
-    })
-    @dnsimple
-  end
-
-  def add_record(vapp_name, domain, subdomain, ip_address)
-    zone = @dnsimple.zones.get(domain)
-
-    record = zone.records.create(
-    :value => ip_address,
-    :name => vapp_name + '.' + subdomain,
-    :type => 'A'
-    )
-    ap record
-  end
-end
-
